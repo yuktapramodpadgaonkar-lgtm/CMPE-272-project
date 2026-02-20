@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>CMPE 272 Project</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;600;700&display=swap" rel="stylesheet">
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+    body {
+      font-family: 'DM Sans', sans-serif;
+      min-height: 100vh;
+      background: linear-gradient(135deg, #0f172a 0%, #1e293b 50%, #0f172a 100%);
+      color: #e2e8f0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 2rem;
+      text-align: center;
+    }
+    .card {
+      background: rgba(30, 41, 59, 0.8);
+      border: 1px solid rgba(148, 163, 184, 0.2);
+      border-radius: 1rem;
+      padding: 3rem;
+      max-width: 520px;
+      box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+    }
+    h1 {
+      font-size: 2rem;
+      font-weight: 700;
+      margin-bottom: 0.5rem;
+      background: linear-gradient(90deg, #38bdf8, #a78bfa);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+    .subtitle {
+      color: #94a3b8;
+      font-size: 1rem;
+      margin-bottom: 2rem;
+    }
+    p {
+      line-height: 1.7;
+      color: #cbd5e1;
+      margin-bottom: 1.5rem;
+    }
+    .badge {
+      display: inline-block;
+      background: linear-gradient(90deg, #3b82f6, #8b5cf6);
+      color: white;
+      padding: 0.35rem 0.75rem;
+      border-radius: 9999px;
+      font-size: 0.875rem;
+      font-weight: 600;
+    }
+    .profile-card {
+      margin-top: 1.5rem;
+      background: rgba(30, 41, 59, 0.8);
+      border: 1px solid rgba(148, 163, 184, 0.2);
+      border-radius: 1rem;
+      padding: 2rem 3rem;
+      max-width: 480px;
+      box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+      text-align: left;
+    }
+    .profile-card .row {
+      display: flex;
+      margin-bottom: 1rem;
+      gap: 0.5rem;
+      flex-wrap: wrap;
+    }
+    .profile-card .label {
+      color: #94a3b8;
+      min-width: 100px;
+      font-weight: 600;
+    }
+    .profile-card .value {
+      color: #e2e8f0;
+    }
+    .profile-card .value a {
+      color: #38bdf8;
+      text-decoration: none;
+    }
+    .profile-card .value a:hover {
+      text-decoration: underline;
+    }
+    .profile-card h2 {
+      font-size: 1.25rem;
+      margin-bottom: 1.25rem;
+      color: #f1f5f9;
+      padding-bottom: 0.75rem;
+      border-bottom: 1px solid rgba(148, 163, 184, 0.2);
+    }
+    .profile-card .section {
+      margin-top: 1.25rem;
+    }
+    .lab-card {
+      margin-top: 1.5rem;
+      background: rgba(30, 41, 59, 0.8);
+      border: 1px solid rgba(148, 163, 184, 0.2);
+      border-radius: 1rem;
+      padding: 2rem 3rem;
+      max-width: 480px;
+      box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+      text-align: left;
+    }
+    .lab-card h2 {
+      font-size: 1.25rem;
+      margin-bottom: 1.25rem;
+      color: #f1f5f9;
+      padding-bottom: 0.75rem;
+      border-bottom: 1px solid rgba(148, 163, 184, 0.2);
+    }
+    .lab-card .lab-links {
+      list-style: none;
+    }
+    .lab-card .lab-links li {
+      margin-bottom: 0.5rem;
+    }
+    .lab-card .lab-links a {
+      color: #38bdf8;
+      text-decoration: none;
+    }
+    .lab-card .lab-links a:hover {
+      text-decoration: underline;
+    }
+    .lab-card .placeholder {
+      color: #64748b;
+      font-size: 0.9rem;
+    }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <span class="badge">CMPE 272</span>
+    <h1>Project Submission</h1>
+    <p class="subtitle">San José State University</p>
+  </div>
+  <div class="profile-card">
+    <h2>Student Info</h2>
+    <div class="row">
+      <span class="label">Name:</span>
+      <span class="value">Yukta Padgaonkar</span>
+    </div>
+    <div class="row">
+      <span class="label">Student Id:</span>
+      <span class="value">018464615</span>
+    </div>
+    <div class="row">
+      <span class="label">Email Id:</span>
+      <span class="value"></span>
+    </div>
+    <div class="row">
+      <span class="label"></span>
+      <span class="value">College: <a href="mailto:yuktapramod.padgaonkar@sjsu.edu">yuktapramod.padgaonkar@sjsu.edu</a></span>
+    </div>
+    <div class="row">
+      <span class="label"></span>
+      <span class="value">Personal: <a href="mailto:yuktapadgaonkar@sjsu.edu">yuktapadgaonkar@sjsu.edu</a></span>
+    </div>
+    <div class="row">
+      <span class="label">College:</span>
+      <span class="value">SJSU MS SE</span>
+    </div>
+    <div class="section">
+      <div class="row">
+        <span class="label">Other links:</span>
+        <span class="value" style="color: #64748b;">—</span>
+      </div>
+    </div>
+  </div>
+  <div class="lab-card">
+    <h2>Lab submissions</h2>
+    <ul class="lab-links">
+      <!-- Add links here in future, e.g.:
+      <li><a href="#">Lab 1</a></li>
+      <li><a href="#">Lab 2</a></li>
+      -->
+    </ul>
+    <p class="placeholder">Links will be added here.</p>
+  </div>
+</body>
+</html>

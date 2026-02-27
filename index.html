@@ -4,6 +4,13 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>CMPE 272 Project</title>
+  <!-- Temp config: set your PHP/hosted site URL below; when set, this page will redirect there. Leave empty to show this page. -->
+  <script>
+    var REDIRECT_TO = ''; // e.g. 'https://yourdomain.com' when your hosted site is ready
+    if (REDIRECT_TO && REDIRECT_TO.indexOf('http') === 0) {
+      window.location.replace(REDIRECT_TO);
+    }
+  </script>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;600;700&display=swap" rel="stylesheet">
@@ -136,6 +143,39 @@
       color: #64748b;
       font-size: 0.9rem;
     }
+    .hosting-card {
+      margin-top: 1.5rem;
+      background: rgba(30, 41, 59, 0.8);
+      border: 1px solid rgba(148, 163, 184, 0.2);
+      border-radius: 1rem;
+      padding: 2rem 3rem;
+      max-width: 480px;
+      box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+      text-align: center;
+    }
+    .hosting-card h2 {
+      font-size: 1.25rem;
+      margin-bottom: 1rem;
+      color: #f1f5f9;
+    }
+    .hosting-card p {
+      color: #94a3b8;
+      font-size: 0.9rem;
+      margin-bottom: 1rem;
+    }
+    .hosting-card .btn {
+      display: inline-block;
+      background: linear-gradient(90deg, #3b82f6, #8b5cf6);
+      color: white;
+      padding: 0.6rem 1.25rem;
+      border-radius: 0.5rem;
+      text-decoration: none;
+      font-weight: 600;
+      transition: opacity 0.2s;
+    }
+    .hosting-card .btn:hover {
+      opacity: 0.9;
+    }
   </style>
 </head>
 <body>
@@ -187,5 +227,15 @@
     </ul>
     <p class="placeholder">Links will be added here.</p>
   </div>
+  <div class="hosting-card">
+    <h2>Hosted environment (PHP + MySQL)</h2>
+    <p>Homework hosting — PHP &amp; MySQL on my own domain</p>
+    <a id="hosting-link" href="#" class="btn">Go to my site →</a>
+  </div>
+  <script>
+    if (typeof REDIRECT_TO !== 'undefined' && REDIRECT_TO && REDIRECT_TO.indexOf('http') === 0) {
+      document.getElementById('hosting-link').href = REDIRECT_TO;
+    }
+  </script>
 </body>
 </html>

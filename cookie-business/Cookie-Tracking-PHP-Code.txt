@@ -1,0 +1,360 @@
+﻿CMPE 272 - Lab: Tracking with Web Cookies - PHP code (attach this .txt to email if Gmail blocks .php)
+Yukta Padgaonkar
+================================================================================
+FILE: includes/cookies_track.php
+================================================================================
+<?php
+/**
+ * Web cookie tracking for CMPE 272 lab:
+ * - Last 5 previously visited product pages
+ * - Visit counts per product (for "five most visited")
+ *
+ * Call track_product_page_visit($id) at the top of product.php BEFORE any HTML output.
+ */
+
+/** Cookie path = folder of current script (works in subdirectories on shared hosting). */
+function sc_cookie_path(): string {
+    $script = $_SERVER['SCRIPT_NAME'] ?? '/index.php';
+    $dir = dirname(str_replace('\\', '/', $script));
+    if ($dir === '/' || $dir === '.' || $dir === '') {
+        return '/';
+    }
+    return rtrim($dir, '/') . '/';
+}
+
+/** Cookie lifetime: 30 days for recent list; 1 year for counts */
+function sc_cookie_options(int $lifetimeSeconds): array {
+    return [
+        'expires'  => time() + $lifetimeSeconds,
+        'path'     => sc_cookie_path(),
+        'secure'   => !empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off',
+        'httponly' => false,
+        'samesite' => 'Lax',
+    ];
+}
+
+function sc_get_recent_product_ids(): array {
+    if (empty($_COOKIE['sc_recent_products'])) {
+        return [];
+    }
+    $decoded = json_decode($_COOKIE['sc_recent_products'], true);
+    if (!is_array($decoded)) {
+        return [];
+    }
+    $out = [];
+    foreach ($decoded as $v) {
+        $id = (int) $v;
+        if ($id >= 1 && $id <= 10) {
+            $out[] = $id;
+        }
+    }
+    return $out;
+}
+
+/**
+ * Maintain last 5 unique product IDs, most recent first.
+ */
+function sc_update_recent_products(int $productId): void {
+    if ($productId < 1 || $productId > 10) {
+        return;
+    }
+    $list = sc_get_recent_product_ids();
+    $list = array_values(array_filter($list, static function ($id) use ($productId) {
+        return (int) $id !== $productId;
+    }));
+    array_unshift($list, $productId);
+    $list = array_slice($list, 0, 5);
+    setcookie('sc_recent_products', json_encode($list), sc_cookie_options(60 * 60 * 24 * 30));
+    $_COOKIE['sc_recent_products'] = json_encode($list);
+}
+
+function sc_get_visit_counts(): array {
+    if (empty($_COOKIE['sc_product_visit_counts'])) {
+        return [];
+    }
+    $decoded = json_decode($_COOKIE['sc_product_visit_counts'], true);
+    if (!is_array($decoded)) {
+        return [];
+    }
+    $counts = [];
+    foreach ($decoded as $k => $v) {
+        $id = (int) $k;
+        if ($id >= 1 && $id <= 10) {
+            $counts[$id] = max(0, (int) $v);
+        }
+    }
+    return $counts;
+}
+
+/**
+ * Increment visit count for a product (most visited tracking).
+ */
+function sc_increment_visit_count(int $productId): void {
+    if ($productId < 1 || $productId > 10) {
+        return;
+    }
+    $counts = sc_get_visit_counts();
+    if (!isset($counts[$productId])) {
+        $counts[$productId] = 0;
+    }
+    $counts[$productId]++;
+    setcookie('sc_product_visit_counts', json_encode($counts), sc_cookie_options(60 * 60 * 24 * 365));
+    $_COOKIE['sc_product_visit_counts'] = json_encode($counts);
+}
+
+/**
+ * Top 5 product IDs by visit count (ties: lower product id first).
+ */
+function sc_get_top_five_most_visited_ids(): array {
+    $counts = sc_get_visit_counts();
+    if (empty($counts)) {
+        return [];
+    }
+    $pairs = [];
+    foreach ($counts as $id => $c) {
+        $pairs[] = ['id' => (int) $id, 'c' => (int) $c];
+    }
+    usort($pairs, static function ($a, $b) {
+        if ($b['c'] !== $a['c']) {
+            return $b['c'] <=> $a['c'];
+        }
+        return $a['id'] <=> $b['id'];
+    });
+    $pairs = array_slice($pairs, 0, 5);
+    return array_column($pairs, 'id');
+}
+
+function track_product_page_visit(int $productId): void {
+    sc_update_recent_products($productId);
+    sc_increment_visit_count($productId);
+}
+
+================================================================================
+FILE: product.php
+================================================================================
+<?php
+require_once __DIR__ . '/includes/products_catalog.php';
+require_once __DIR__ . '/includes/cookies_track.php';
+
+$id = isset($_GET['id']) ? (int) $_GET['id'] : 0;
+$product = get_product_by_id($id);
+
+if ($product === null) {
+    header('HTTP/1.1 404 Not Found');
+    $page_title = 'Product Not Found';
+    include __DIR__ . '/includes/header.php';
+    echo '<div class="container"><h1>Product not found</h1><p><a href="products.php">Back to Products</a></p></div>';
+    include __DIR__ . '/includes/footer.php';
+    exit;
+}
+
+track_product_page_visit($id);
+
+$page_title = htmlspecialchars($product['name']);
+include __DIR__ . '/includes/header.php';
+?>
+  <div class="container product-detail">
+    <p class="breadcrumb"><a href="products.php">&larr; All products</a></p>
+    <article class="product-article">
+      <img src="<?php echo htmlspecialchars($product['image']); ?>" alt="<?php echo htmlspecialchars($product['name']); ?>" class="product-hero-img" width="800" height="500" loading="lazy">
+      <h1><?php echo htmlspecialchars($product['name']); ?></h1>
+      <p class="product-lead"><?php echo htmlspecialchars($product['short']); ?></p>
+      <p><?php echo htmlspecialchars($product['description']); ?></p>
+    </article>
+  </div>
+<?php include __DIR__ . '/includes/footer.php'; ?>
+
+================================================================================
+FILE: includes/products_catalog.php
+================================================================================
+<?php
+/**
+ * Catalog of 10 products/services for Sweet Crumb Homemade Cookies.
+ * Keys are product IDs (1â€“10).
+ */
+function get_products_catalog(): array {
+    return [
+        1 => [
+            'name'        => 'Classic Chocolate Chip',
+            'short'       => 'Buttery dough loaded with semisweet chips.',
+            'description' => 'Our signature cookie: real butter, brown sugar, and premium semisweet chocolate chips. Baked until the edges are golden and the center stays soft. Perfect with milk or coffee. Available by the dozen or half-dozen.',
+            'image'       => 'https://images.unsplash.com/photo-1499636136210-6f4ee915583e?w=800&q=80',
+        ],
+        2 => [
+            'name'        => 'Oatmeal Raisin Deluxe',
+            'short'       => 'Hearty oats, plump raisins, warm spice.',
+            'description' => 'Old-fashioned rolled oats, California raisins, and a hint of cinnamon and vanilla. Chewy, filling, and not too sweetâ€”great for breakfast or an afternoon snack.',
+            'image'       => 'https://images.unsplash.com/photo-1590080876410-2c2a8e7b3c5f?w=800&q=80',
+        ],
+        3 => [
+            'name'        => 'Decorated Sugar Cookies',
+            'short'       => 'Soft vanilla cookies with custom icing.',
+            'description' => 'Soft cut-out sugar cookies with royal icing in your choice of colors and simple designs. Ideal for birthdays, holidays, and corporate gifts. Minimum order applies.',
+            'image'       => 'https://images.unsplash.com/photo-1558961363-fa8fdf82db35?w=800&q=80',
+        ],
+        4 => [
+            'name'        => 'Snickerdoodle',
+            'short'       => 'Cinnamon-sugar crackle, pillowy center.',
+            'description' => 'Cream of tartar gives these their classic tang; the outside is rolled in cinnamon sugar for a crisp, spicy shell and a tender middle.',
+            'image'       => 'https://images.unsplash.com/photo-1606313564200-e75d5e30476c?w=800&q=80',
+        ],
+        5 => [
+            'name'        => 'Double Chocolate Fudge',
+            'short'       => 'Cocoa dough plus dark chocolate chunks.',
+            'description' => 'For chocolate lovers: rich cocoa batter folded with dark chocolate chunks. Dense, fudgy, and intense. Pairs well with espresso.',
+            'image'       => 'https://images.unsplash.com/photo-1606313564200-e75d5e30476c?w=800&q=80',
+        ],
+        6 => [
+            'name'        => 'Lemon Glazed Shortbread',
+            'short'       => 'Buttery shortbread with bright lemon glaze.',
+            'description' => 'Crisp shortbread base with fresh lemon zest in the dough and a thin tangy glaze on top. Light and refreshing for spring and summer events.',
+            'image'       => 'https://images.unsplash.com/photo-1621303837174-89787a7d4729?w=800&q=80',
+        ],
+        7 => [
+            'name'        => 'Peanut Butter Blossom',
+            'short'       => 'Soft peanut butter with a chocolate kiss.',
+            'description' => 'Classic peanut butter cookies rolled in sugar, baked, and topped with a milk chocolate center. Nostalgic and crowd-pleasing.',
+            'image'       => 'https://images.unsplash.com/photo-1599735219378-2b5c8a3b6c5f?w=800&q=80',
+        ],
+        8 => [
+            'name'        => 'Custom Catering Tray',
+            'short'       => 'Assorted cookies for meetings and parties.',
+            'description' => 'Large platters with a mix of our bestsellers (minimum 48 pieces). We label allergens on request and deliver within our service area. Perfect for office meetings and celebrations.',
+            'image'       => 'https://images.unsplash.com/photo-1558961363-fa8fdf82db35?w=800&q=80',
+        ],
+        9 => [
+            'name'        => 'Gift Box Subscription',
+            'short'       => 'Monthly curated cookie box shipped or picked up.',
+            'description' => 'Subscribe for a monthly box of seasonal flavors plus a rotating â€œbakerâ€™s choice.â€ Skip or cancel anytime. Great gift for students and remote teams.',
+            'image'       => 'https://images.unsplash.com/photo-1548365328-9c3a75d7f2f0?w=800&q=80',
+        ],
+        10 => [
+            'name'        => 'Gluten-Friendly Almond Cookie',
+            'short'       => 'Almond flour base; made in a home kitchen.',
+            'description' => 'Chewy cookies made with almond flour and dark chocolate. Not certified gluten-free (shared kitchen) but no wheat flour in the recipe. Ask for ingredient list.',
+            'image'       => 'https://images.unsplash.com/photo-1499636136210-6f4ee915583e?w=800&q=80',
+        ],
+    ];
+}
+
+function get_product_by_id(int $id): ?array {
+    $all = get_products_catalog();
+    return $all[$id] ?? null;
+}
+
+================================================================================
+FILE: recent-products.php
+================================================================================
+<?php
+require_once __DIR__ . '/includes/products_catalog.php';
+require_once __DIR__ . '/includes/cookies_track.php';
+
+$page_title = 'Recently Viewed Products';
+include __DIR__ . '/includes/header.php';
+
+$ids = sc_get_recent_product_ids();
+?>
+  <div class="container">
+    <h1>Last 5 Previously Visited Products</h1>
+    <p>Tracked with a web cookie (<code>sc_recent_products</code>) as you browse individual product pages.</p>
+    <p><a href="products.php">&larr; Back to Products</a></p>
+    <?php if (empty($ids)): ?>
+      <p class="muted">You have not viewed any product pages yet. Open a few products from the <a href="products.php">Products</a> page, then return here.</p>
+    <?php else: ?>
+      <ul class="tracked-list">
+        <?php foreach ($ids as $pid):
+            $p = get_product_by_id($pid);
+            if ($p === null) {
+                continue;
+            }
+        ?>
+          <li class="tracked-item">
+            <a href="product.php?id=<?php echo (int) $pid; ?>">
+              <img src="<?php echo htmlspecialchars($p['image']); ?>" alt="" width="120" height="80" loading="lazy">
+              <span><?php echo htmlspecialchars($p['name']); ?></span>
+            </a>
+          </li>
+        <?php endforeach; ?>
+      </ul>
+    <?php endif; ?>
+  </div>
+<?php include __DIR__ . '/includes/footer.php'; ?>
+
+================================================================================
+FILE: popular-products.php
+================================================================================
+<?php
+require_once __DIR__ . '/includes/products_catalog.php';
+require_once __DIR__ . '/includes/cookies_track.php';
+
+$page_title = 'Most Visited Products';
+include __DIR__ . '/includes/header.php';
+
+$topIds = sc_get_top_five_most_visited_ids();
+$counts = sc_get_visit_counts();
+?>
+  <div class="container">
+    <h1>Five Most Visited Products</h1>
+    <p>Visit counts are stored in a cookie (<code>sc_product_visit_counts</code>) and updated each time you open a product page.</p>
+    <p><a href="products.php">&larr; Back to Products</a></p>
+    <?php if (empty($topIds)): ?>
+      <p class="muted">No visit data yet. Browse some <a href="products.php">products</a> and come backâ€”each page view increments that productâ€™s count.</p>
+    <?php else: ?>
+      <ol class="tracked-list popular">
+        <?php foreach ($topIds as $pid):
+            $p = get_product_by_id($pid);
+            if ($p === null) {
+                continue;
+            }
+            $c = $counts[$pid] ?? 0;
+        ?>
+          <li class="tracked-item">
+            <a href="product.php?id=<?php echo (int) $pid; ?>">
+              <img src="<?php echo htmlspecialchars($p['image']); ?>" alt="" width="120" height="80" loading="lazy">
+              <span><?php echo htmlspecialchars($p['name']); ?></span>
+            </a>
+            <span class="visit-badge"><?php echo (int) $c; ?> visit<?php echo $c === 1 ? '' : 's'; ?></span>
+          </li>
+        <?php endforeach; ?>
+      </ol>
+    <?php endif; ?>
+  </div>
+<?php include __DIR__ . '/includes/footer.php'; ?>
+
+================================================================================
+FILE: products.php
+================================================================================
+<?php
+require_once __DIR__ . '/includes/products_catalog.php';
+$page_title = 'Products';
+include 'includes/header.php';
+$catalog = get_products_catalog();
+?>
+  <div class="container">
+    <h1>Products &amp; Services</h1>
+    <p>We offer ten cookie varieties and servicesâ€”each has its own page with photos and details.</p>
+    <p class="cookie-links">
+      <a href="recent-products.php">Last 5 previously visited products</a>
+      &nbsp;|&nbsp;
+      <a href="popular-products.php">Five most visited products</a>
+    </p>
+    <h2>Our Products (10)</h2>
+    <div class="card-grid product-cards">
+      <?php foreach ($catalog as $id => $item): ?>
+        <a href="product.php?id=<?php echo (int) $id; ?>" class="card product-card-link">
+          <img src="<?php echo htmlspecialchars($item['image']); ?>" alt="<?php echo htmlspecialchars($item['name']); ?>" class="card-thumb" width="400" height="240" loading="lazy">
+          <h3><?php echo htmlspecialchars($item['name']); ?></h3>
+          <p><?php echo htmlspecialchars($item['short']); ?></p>
+          <span class="view-product">View details &rarr;</span>
+        </a>
+      <?php endforeach; ?>
+    </div>
+    <h2>Services</h2>
+    <ul>
+      <li><strong>Custom orders:</strong> Mix and match flavors, quantities, and packaging.</li>
+      <li><strong>Catering:</strong> Cookie trays and boxes for meetings, parties, and events.</li>
+      <li><strong>Gift boxes:</strong> Beautifully packed boxes for shipping or local delivery.</li>
+    </ul>
+    <p>Contact us for pricing and availability: <a href="contacts.php">Contacts</a>.</p>
+  </div>
+<?php include 'includes/footer.php'; ?>

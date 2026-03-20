@@ -1,0 +1,5 @@
+# Use PHP index by default when opening the folder URL
+DirectoryIndex index.php index.html
+
+# If you still see a 403/404 on the folder URL, your host may need this (uncomment if needed):
+# Options +FollowSymLinks

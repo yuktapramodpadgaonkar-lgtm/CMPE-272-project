@@ -1,18 +1,18 @@
 <?php
 // Simple admin authentication using a text file with userid:password
 
-function auth_start_session(): void {
+function auth_start_session() {
     if (session_status() === PHP_SESSION_NONE) {
         session_start();
     }
 }
 
-function auth_load_admin_users(string $filePath = null): array {
+function auth_load_admin_users($filePath = null) {
     if ($filePath === null) {
         $filePath = __DIR__ . '/../data/admin_users.txt';
     }
 
-    $users = [];
+    $users = array();
     if (!file_exists($filePath)) {
         return $users;
     }
@@ -28,7 +28,9 @@ function auth_load_admin_users(string $filePath = null): array {
             continue;
         }
         if (strpos($line, ':') !== false) {
-            [$user, $pass] = explode(':', $line, 2);
+            $parts = explode(':', $line, 2);
+            $user = isset($parts[0]) ? $parts[0] : '';
+            $pass = isset($parts[1]) ? $parts[1] : '';
             $users[trim($user)] = trim($pass);
         }
     }
@@ -36,12 +38,12 @@ function auth_load_admin_users(string $filePath = null): array {
     return $users;
 }
 
-function auth_check_credentials(string $username, string $password): bool {
+function auth_check_credentials($username, $password) {
     $users = auth_load_admin_users();
     return isset($users[$username]) && $users[$username] === $password;
 }
 
-function auth_require_admin(): void {
+function auth_require_admin() {
     auth_start_session();
     if (empty($_SESSION['is_admin']) || $_SESSION['is_admin'] !== true) {
         header('Location: admin-login.php');

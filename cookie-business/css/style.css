@@ -231,6 +231,46 @@ ol.tracked-list.popular .tracked-item {
   color: #6b3410;
 }
 /* Footer */
+/* Combined users lab */
+.combined-users .user-section {
+  margin-top: 2rem;
+  padding-top: 1rem;
+  border-top: 1px solid #e8d5c4;
+}
+.user-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 0.75rem;
+  background: #fff;
+  border: 1px solid #e8d5c4;
+  border-radius: 8px;
+  overflow: hidden;
+}
+.user-table th,
+.user-table td {
+  padding: 0.5rem 0.75rem;
+  text-align: left;
+  border-bottom: 1px solid #e8d5c4;
+}
+.user-table th {
+  background: #fef7f0;
+  color: #6b3410;
+  font-weight: 700;
+}
+.user-table tr:last-child td {
+  border-bottom: none;
+}
+.error-msg {
+  color: #b91c1c;
+  background: #fef2f2;
+  padding: 0.75rem 1rem;
+  border-radius: 6px;
+  border: 1px solid #fecaca;
+}
+.small {
+  font-size: 0.85rem;
+}
+
 footer {
   background: #3d2914;
   color: #e8d5c4;

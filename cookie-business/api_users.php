@@ -9,7 +9,7 @@ require_once __DIR__ . '/includes/db.php';
 
 try {
     $mysqli = db_connect();
-    $result = $mysqli->query('SELECT id, name, email FROM users ORDER BY id ASC');
+    $result = $mysqli->query('SELECT id, name, email, created_at FROM users ORDER BY id ASC');
     if ($result === false) {
         throw new Exception($mysqli->error);
     }
@@ -19,15 +19,23 @@ try {
             'id'    => (int) $row['id'],
             'name'  => $row['name'],
             'email' => $row['email'],
+            'created_at' => isset($row['created_at']) ? $row['created_at'] : null,
         );
     }
     $mysqli->close();
 
-    echo json_encode(array(
-        'company'       => db_company_name(),
-        'company_code'  => db_company_code(),
-        'users'         => $users,
-    ), JSON_UNESCAPED_UNICODE);
+    // Default output matches common classmate format: raw list of users.
+    // Optional compatibility format: api_users.php?format=wrapped
+    $format = isset($_GET['format']) ? strtolower(trim((string) $_GET['format'])) : 'flat';
+    if ($format === 'wrapped') {
+        echo json_encode(array(
+            'company'       => db_company_name(),
+            'company_code'  => db_company_code(),
+            'users'         => $users,
+        ), JSON_UNESCAPED_UNICODE);
+    } else {
+        echo json_encode($users, JSON_UNESCAPED_UNICODE);
+    }
 } catch (Exception $e) {
     http_response_code(500);
     echo json_encode(array(

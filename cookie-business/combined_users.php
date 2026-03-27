@@ -40,6 +40,16 @@ function fetch_remote_users_json($url) {
     return $data;
 }
 
+/**
+ * Returns true when payload is a list-style array (0..n keys), not an object map.
+ */
+function is_list_array($value) {
+    if (!is_array($value)) {
+        return false;
+    }
+    return array_keys($value) === range(0, count($value) - 1);
+}
+
 $localBlock = array('company' => '', 'company_code' => '', 'users' => array(), 'error' => '');
 $remoteBlocks = array();
 
@@ -80,11 +90,22 @@ foreach (db_remote_apis() as $apiUrl) {
             'error' => is_string($data['error']) ? $data['error'] : 'Remote error',
         );
     } else {
+        // Support both payload formats:
+        // 1) {"company":"...","company_code":"...","users":[...]} (preferred)
+        // 2) [{"id":1,"name":"...","email":"..."}] (fallback)
+        $usersFromPayload = array();
+        if (isset($data['users']) && is_array($data['users'])) {
+            $usersFromPayload = $data['users'];
+        } elseif (is_list_array($data)) {
+            $usersFromPayload = $data;
+        }
+
+        $host = parse_url($apiUrl, PHP_URL_HOST);
         $remoteBlocks[] = array(
             'url'          => $apiUrl,
-            'company'      => isset($data['company']) ? $data['company'] : 'Unknown',
+            'company'      => isset($data['company']) ? $data['company'] : ($host ? $host : 'Unknown'),
             'company_code' => isset($data['company_code']) ? $data['company_code'] : '?',
-            'users'        => isset($data['users']) && is_array($data['users']) ? $data['users'] : array(),
+            'users'        => $usersFromPayload,
         );
     }
 }

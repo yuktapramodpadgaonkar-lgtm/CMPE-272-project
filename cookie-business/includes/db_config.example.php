@@ -7,13 +7,13 @@
  */
 return array(
     'host'   => '127.0.0.1',
-    'user'   => 'YOUR_MYSQL_USER',
-    'pass'   => 'YOUR_MYSQL_PASSWORD',
+    'user'   => 'root',
+    'pass'   => '',
     'dbname' => 'cmpe272_company_users',
 
     // Shown in JSON API and combined page
     'company_name' => 'Sweet Crumb Homemade Cookies',
-    'company_code' => 'A',
+    'company_code' => 'SCHC',
 
     /**
      * Full HTTPS URLs to teammates' api_users.php (Company B and C).
@@ -22,7 +22,6 @@ return array(
      * 'https://classmate-c.com/CMPE-272-project/cookie-business/api_users.php',
      */
     'remote_apis' => array(
-        'https://TEAMMATE-B-DOMAIN/path/to/cookie-business/api_users.php',
-        'https://TEAMMATE-C-DOMAIN/path/to/cookie-business/api_users.php',
+        'http://geekyhub.me/api/users.php',
     ),
 );

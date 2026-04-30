@@ -17,6 +17,7 @@
           <li><a href="products.php">Products</a></li>
           <li><a href="news.php">News</a></li>
           <li><a href="contacts.php">Contacts</a></li>
+          <li><a href="users.php">Users</a></li>
           <li><a href="combined_users.php">All companies’ users</a></li>
           <li><a href="admin-login.php">Admin</a></li>
         </ul>

@@ -270,6 +270,110 @@ ol.tracked-list.popular .tracked-item {
 .small {
   font-size: 0.85rem;
 }
+/* User directory (create / search) */
+.user-hub-cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 1.25rem;
+  margin-top: 1rem;
+}
+.stacked-form {
+  max-width: 520px;
+  margin-top: 1rem;
+  background: #fff;
+  border: 1px solid #e8d5c4;
+  border-radius: 10px;
+  padding: 1.25rem 1.5rem;
+  box-shadow: 0 2px 8px rgba(139, 69, 19, 0.06);
+}
+.form-row {
+  margin-bottom: 1rem;
+}
+.form-row label {
+  display: block;
+  font-weight: 700;
+  color: #6b3410;
+  margin-bottom: 0.35rem;
+}
+.form-row input,
+.form-row textarea {
+  width: 100%;
+  padding: 0.55rem 0.65rem;
+  border: 1px solid #e8d5c4;
+  border-radius: 6px;
+  font-family: inherit;
+  font-size: 1rem;
+  background: #fffdf9;
+}
+.form-row textarea {
+  resize: vertical;
+  min-height: 4.5rem;
+}
+.req {
+  color: #b45309;
+}
+.form-actions {
+  margin-top: 1.25rem;
+}
+.btn {
+  display: inline-block;
+  padding: 0.55rem 1.1rem;
+  border-radius: 6px;
+  border: none;
+  font-family: inherit;
+  font-weight: 700;
+  font-size: 0.95rem;
+  cursor: pointer;
+}
+.btn-primary {
+  background: #8b4513;
+  color: #fdf8f3;
+}
+.btn-primary:hover {
+  background: #6b3410;
+}
+.success-msg {
+  color: #166534;
+  background: #f0fdf4;
+  padding: 0.75rem 1rem;
+  border-radius: 6px;
+  border: 1px solid #bbf7d0;
+  margin-bottom: 1rem;
+}
+.search-form {
+  max-width: 720px;
+}
+.inline-search label {
+  display: block;
+  font-weight: 700;
+  margin-bottom: 0.35rem;
+  color: #6b3410;
+}
+.search-bar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.65rem;
+  align-items: center;
+}
+.search-bar input[type="search"] {
+  flex: 1;
+  min-width: 200px;
+  padding: 0.55rem 0.65rem;
+  border: 1px solid #e8d5c4;
+  border-radius: 6px;
+  font-family: inherit;
+  font-size: 1rem;
+  background: #fffdf9;
+}
+.table-scroll {
+  overflow-x: auto;
+  margin-top: 0.75rem;
+}
+.user-table.wide th,
+.user-table.wide td {
+  font-size: 0.9rem;
+  vertical-align: top;
+}
 
 footer {
   background: #3d2914;

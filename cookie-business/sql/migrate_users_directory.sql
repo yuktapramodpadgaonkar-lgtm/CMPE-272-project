@@ -1,32 +1,35 @@
--- CMPE 272: company users database (directory + combined-users lab)
--- Run as MySQL root (or a user that can CREATE DATABASE).
-
-CREATE DATABASE IF NOT EXISTS cmpe272_company_users
-  CHARACTER SET utf8mb4
-  COLLATE utf8mb4_unicode_ci;
-
+-- Run ONCE if you already have the old users table (id, name, email, created_at only).
 USE cmpe272_company_users;
 
-CREATE TABLE IF NOT EXISTS users (
-  id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
-  first_name VARCHAR(100) NOT NULL,
-  last_name VARCHAR(100) NOT NULL,
-  email VARCHAR(150) NOT NULL,
-  home_address VARCHAR(255) NOT NULL,
-  home_phone VARCHAR(40) NOT NULL DEFAULT '',
-  cell_phone VARCHAR(40) NOT NULL DEFAULT '',
-  -- Kept in sync with first + last name for JSON API / combined list
-  name VARCHAR(202) NOT NULL,
-  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-  UNIQUE KEY uq_users_email (email)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+ALTER TABLE users
+  ADD COLUMN first_name VARCHAR(100) NULL AFTER id,
+  ADD COLUMN last_name VARCHAR(100) NULL AFTER first_name,
+  ADD COLUMN home_address VARCHAR(255) NULL AFTER email,
+  ADD COLUMN home_phone VARCHAR(40) NOT NULL DEFAULT '' AFTER home_address,
+  ADD COLUMN cell_phone VARCHAR(40) NOT NULL DEFAULT '' AFTER home_phone;
 
--- At least 20 Sweet Crumb directory users
-INSERT INTO users (first_name, last_name, email, home_address, home_phone, cell_phone, name) VALUES
-('Yukta','Padgaonkar','yuktapramod.padgaonkar@sjsu.edu','1 Cookie Row, San Jose, CA 95112','408-555-1001','408-555-1002','Yukta Padgaonkar'),
-('Mary','Smith','mary@sweetcrumb.test','22 Baker St, San Jose, CA','408-555-1003','408-555-1004','Mary Smith'),
-('John','Wang','john@sweetcrumb.test','305 Chip Way, Santa Clara, CA','408-555-1005','408-555-1006','John Wang'),
-('Alex','Bington','alex@sweetcrumb.test','48 Sugar Hill Rd, Sunnyvale, CA','408-555-1007','408-555-1008','Alex Bington'),
+-- Split legacy name into first/last when possible.
+UPDATE users SET
+  first_name = TRIM(SUBSTRING_INDEX(COALESCE(name, ''), ' ', 1)),
+  last_name = CASE
+    WHEN LOCATE(' ', COALESCE(name, '')) > 0
+      THEN TRIM(SUBSTRING(name, LOCATE(' ', name)))
+    ELSE ''
+  END
+WHERE first_name IS NULL;
+
+UPDATE users SET last_name = '-' WHERE last_name IS NULL OR last_name = '';
+UPDATE users SET home_address = 'Not provided' WHERE home_address IS NULL OR TRIM(home_address) = '';
+UPDATE users SET home_phone = COALESCE(home_phone, '');
+UPDATE users SET cell_phone = COALESCE(cell_phone, '');
+
+ALTER TABLE users
+  MODIFY first_name VARCHAR(100) NOT NULL,
+  MODIFY last_name VARCHAR(100) NOT NULL,
+  MODIFY home_address VARCHAR(255) NOT NULL;
+
+-- Reach at least 20 rows (skipped if duplicates on email — adjust emails if needed).
+INSERT IGNORE INTO users (first_name, last_name, email, home_address, home_phone, cell_phone, name) VALUES
 ('Oliver','Crumb','oliver.crumb@sweetcrumb.test','12 Maple Rd, San Jose, CA','408-555-0101','408-555-0102','Oliver Crumb'),
 ('Nina','Icing','nina.icing@sweetcrumb.test','44 Butter Ln, San Jose, CA','408-555-0103','408-555-0104','Nina Icing'),
 ('Ethan','Glaze','ethan.glaze@sweetcrumb.test','9 Sugar St, Santa Clara, CA','408-555-0105','408-555-0106','Ethan Glaze'),
@@ -43,8 +46,3 @@ INSERT INTO users (first_name, last_name, email, home_address, home_phone, cell_
 ('Isabella','Frost','isabella.frost@sweetcrumb.test','908 Sprinkle St, Sunnyvale, CA','408-555-0601','408-555-0602','Isabella Frost'),
 ('Benjamin','Drizzle','benjamin.drizzle@sweetcrumb.test','12 Glaze Terrace, Berkeley, CA','510-555-0603','510-555-0604','Benjamin Drizzle'),
 ('Ruby','Sesame','ruby.sesame@sweetcrumb.test','630 Crunch Path, Campbell, CA','408-555-0701','408-555-0702','Ruby Sesame');
-
--- Dedicated MySQL user (optional — adjust password and run as root):
--- CREATE USER IF NOT EXISTS 'cmpe272_user'@'localhost' IDENTIFIED BY 'CHOOSE_A_STRONG_PASSWORD';
--- GRANT ALL PRIVILEGES ON cmpe272_company_users.* TO 'cmpe272_user'@'localhost';
--- FLUSH PRIVILEGES;

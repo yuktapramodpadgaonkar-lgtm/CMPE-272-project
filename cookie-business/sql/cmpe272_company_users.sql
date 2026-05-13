@@ -7,7 +7,10 @@ CREATE DATABASE IF NOT EXISTS cmpe272_company_users
 
 USE cmpe272_company_users;
 
-CREATE TABLE IF NOT EXISTS users (
+-- Replace old `users` shape (e.g. from an earlier lab) so CREATE + INSERT always match.
+DROP TABLE IF EXISTS users;
+
+CREATE TABLE users (
   id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
   first_name VARCHAR(100) NOT NULL,
   last_name VARCHAR(100) NOT NULL,
@@ -43,6 +46,18 @@ INSERT INTO users (first_name, last_name, email, home_address, home_phone, cell_
 ('Isabella','Frost','isabella.frost@sweetcrumb.test','908 Sprinkle St, Sunnyvale, CA','408-555-0601','408-555-0602','Isabella Frost'),
 ('Benjamin','Drizzle','benjamin.drizzle@sweetcrumb.test','12 Glaze Terrace, Berkeley, CA','510-555-0603','510-555-0604','Benjamin Drizzle'),
 ('Ruby','Sesame','ruby.sesame@sweetcrumb.test','630 Crunch Path, Campbell, CA','408-555-0701','408-555-0702','Ruby Sesame');
+
+-- Customer accounts (OurMarketplace-style: username, email, full_name, password_hash)
+CREATE TABLE IF NOT EXISTS site_accounts (
+  id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+  username VARCHAR(50) NOT NULL,
+  email VARCHAR(100) NOT NULL,
+  password_hash VARCHAR(255) NOT NULL,
+  full_name VARCHAR(100) NOT NULL,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  UNIQUE KEY uq_site_accounts_username (username),
+  UNIQUE KEY uq_site_accounts_email (email)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- Dedicated MySQL user (optional — adjust password and run as root):
 -- CREATE USER IF NOT EXISTS 'cmpe272_user'@'localhost' IDENTIFIED BY 'CHOOSE_A_STRONG_PASSWORD';

@@ -1,2 +1,4 @@
 # Do not commit real DB passwords — keep db_config.php only on the server
 db_config.php
+# Shared SSO secret (must match OurMarketplace config/sso_config.php)
+sso_config.php

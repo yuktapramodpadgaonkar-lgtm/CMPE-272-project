@@ -332,6 +332,20 @@ ol.tracked-list.popular .tracked-item {
 .btn-primary:hover {
   background: #6b3410;
 }
+.btn-secondary {
+  background: #f3e8dc;
+  color: #6b3410;
+  border: 1px solid #d9b99b;
+}
+.btn-secondary:hover {
+  background: #ead6c2;
+}
+.sc-ranking-tab.active,
+.sc-top-tab.active {
+  background: #8b4513;
+  color: #fdf8f3;
+  border-color: #8b4513;
+}
 .success-msg {
   color: #166534;
   background: #f0fdf4;

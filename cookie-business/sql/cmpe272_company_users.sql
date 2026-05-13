@@ -47,6 +47,17 @@ INSERT INTO users (first_name, last_name, email, home_address, home_phone, cell_
 ('Benjamin','Drizzle','benjamin.drizzle@sweetcrumb.test','12 Glaze Terrace, Berkeley, CA','510-555-0603','510-555-0604','Benjamin Drizzle'),
 ('Ruby','Sesame','ruby.sesame@sweetcrumb.test','630 Crunch Path, Campbell, CA','408-555-0701','408-555-0702','Ruby Sesame');
 
+-- Local mirror of marketplace-authenticated customers (SSO).
+CREATE TABLE IF NOT EXISTS site_users (
+  id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+  marketplace_user_id INT UNSIGNED NOT NULL UNIQUE,
+  username VARCHAR(50) NOT NULL,
+  full_name VARCHAR(100) NOT NULL,
+  email VARCHAR(150) NOT NULL UNIQUE,
+  last_logged_in DATETIME NULL,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
 -- Customer accounts (OurMarketplace-style: username, email, full_name, password_hash)
 CREATE TABLE IF NOT EXISTS site_accounts (
   id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,

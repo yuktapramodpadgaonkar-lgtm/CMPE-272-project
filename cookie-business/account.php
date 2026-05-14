@@ -19,11 +19,11 @@ require_once __DIR__ . '/includes/header.php';
     <?php endif; ?>
 
     <?php if ($isSiteUser): ?>
-      <p class="product-lead">You are signed in with <strong>OurMarketplace</strong>.</p>
+      <p class="product-lead">You are signed in with your Sweet Crumb customer account.</p>
     <?php elseif ($isAdmin): ?>
       <p class="product-lead">You are signed in as an administrator.</p>
     <?php else: ?>
-      <p class="product-lead">Customer accounts use <strong>OurMarketplace</strong> single sign-on. Create an account there, then sign in here.</p>
+      <p class="product-lead">Customer accounts use local Sweet Crumb login and registration on this website.</p>
     <?php endif; ?>
 
     <div class="card-grid">
@@ -46,13 +46,13 @@ require_once __DIR__ . '/includes/header.php';
       <?php elseif (!$isAdmin): ?>
         <div class="card">
           <h3>Sign in</h3>
-          <p>Use the same OurMarketplace account for this cookie site.</p>
-          <p><a class="cookie-links" href="sso/start.php">Sign in with Our Marketplace</a></p>
+          <p>Use your Sweet Crumb customer account to sign in.</p>
+          <p><a class="cookie-links" href="user_login.php">Customer login</a></p>
         </div>
         <div class="card">
           <h3>Create account</h3>
-          <p>Register on OurMarketplace, then return here and use Sign in.</p>
-          <p><a class="cookie-links" href="<?php echo htmlspecialchars(sc_sso_marketplace_register_url()); ?>">Create account on Our Marketplace</a></p>
+          <p>Create a normal local customer account for this site.</p>
+          <p><a class="cookie-links" href="user_register.php">Register here</a></p>
         </div>
       <?php endif; ?>
 
@@ -72,7 +72,7 @@ require_once __DIR__ . '/includes/header.php';
 
       <div class="card">
         <h3>OurMarketplace</h3>
-        <p>Browse the shared marketplace in a new tab.</p>
+        <p>Browse the shared marketplace in a new tab. This is separate from the local Sweet Crumb customer login.</p>
         <p><a class="cookie-links" href="<?php echo htmlspecialchars(rtrim((string) (sc_sso_config()['provider_base'] ?? ''), '/') . '/'); ?>" target="_blank" rel="noopener">Open Our Marketplace</a></p>
       </div>
     </div>

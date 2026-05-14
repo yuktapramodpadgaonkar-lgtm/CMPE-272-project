@@ -3,6 +3,7 @@
  * Register / login for site_accounts (OurMarketplace-style fields).
  */
 require_once __DIR__ . '/db.php';
+require_once __DIR__ . '/site_user_auth.php';
 
 /**
  * @return string|null Error message, or null on success
@@ -86,7 +87,7 @@ function site_login_from_post(array $post): ?string {
         return 'Database error. Check db_config.php.';
     }
 
-    $stmt = $mysqli->prepare('SELECT id, username, password_hash, full_name FROM site_accounts WHERE username = ? OR email = ? LIMIT 1');
+    $stmt = $mysqli->prepare('SELECT id, username, email, password_hash, full_name FROM site_accounts WHERE username = ? OR email = ? LIMIT 1');
     if ($stmt === false) {
         $mysqli->close();
         return 'Database error.';
@@ -102,7 +103,12 @@ function site_login_from_post(array $post): ?string {
         return 'Invalid username or password.';
     }
 
-    require_once __DIR__ . '/site_session.php';
-    site_user_set_session((int) $row['id'], (string) $row['username'], (string) $row['full_name']);
+    sc_site_user_login([
+        'id' => (int) $row['id'],
+        'marketplace_user_id' => 0,
+        'username' => (string) $row['username'],
+        'full_name' => (string) $row['full_name'],
+        'email' => (string) ($row['email'] ?? $username),
+    ]);
     return null;
 }

@@ -1,7 +1,7 @@
 <?php
 require_once __DIR__ . '/includes/site_user_auth.php';
 
-sc_require_site_user('sso/start.php');
+sc_require_site_user('user_login.php');
 $user = sc_site_user();
 
 $page_title = 'My Dashboard';
@@ -9,10 +9,10 @@ require_once __DIR__ . '/includes/header.php';
 ?>
   <div class="container">
     <h1>Welcome, <?php echo htmlspecialchars((string) ($user['full_name'] ?? '')); ?></h1>
-    <p class="product-lead">You are signed in with OurMarketplace on Sweet Crumb Homemade Cookies.</p>
+    <p class="product-lead">You are signed in with your Sweet Crumb customer account.</p>
 
-    <?php if (($_GET['welcome'] ?? '') === 'sso'): ?>
-      <p class="success-msg">Marketplace sign-in completed successfully.</p>
+    <?php if (($_GET['welcome'] ?? '') === 'register'): ?>
+      <p class="success-msg">Your customer account is ready to use.</p>
     <?php endif; ?>
 
     <div class="card-grid">

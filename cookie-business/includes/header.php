@@ -72,7 +72,7 @@ $jsVer = is_file($jsPath) ? (string) filemtime($jsPath) : (string) time();
   <?php endif; ?>
   <?php if ($isUserLoggedIn): ?>
   <div class="container" style="background:#fff8e6;border-bottom:1px solid #e8d4a8;padding:0.5rem 0;font-size:0.9rem;">
-    Signed in with <strong>OurMarketplace</strong> as <?php echo htmlspecialchars((string) ($siteUser['full_name'] ?? '')); ?>.
+    Signed in to <strong>Sweet Crumb Homemade Cookies</strong> as <?php echo htmlspecialchars((string) ($siteUser['full_name'] ?? '')); ?>.
     &middot; <a href="user_dashboard.php">Dashboard</a>
     &middot; <a href="user_logout.php">Log out</a>
   </div>

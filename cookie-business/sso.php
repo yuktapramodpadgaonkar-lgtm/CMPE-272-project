@@ -1,3 +1,3 @@
 <?php
-header('Location: sso/start.php', true, 302);
+header('Location: user_login.php', true, 302);
 exit;

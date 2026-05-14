@@ -30,6 +30,20 @@ function sc_sso_authorize_url(): string
     ]);
 }
 
+function sc_sso_login_url(): string
+{
+    $c = sc_sso_config();
+    $base = rtrim((string) ($c['provider_base'] ?? ''), '/');
+    $authorizeUrl = sc_sso_authorize_url();
+    if ($base === '' || $authorizeUrl === '#' || $authorizeUrl === '') {
+        return '#';
+    }
+
+    return $base . '/auth/login.php?' . http_build_query([
+        'return_to' => $authorizeUrl,
+    ]);
+}
+
 function sc_sso_marketplace_register_url(): string
 {
     $c = sc_sso_config();

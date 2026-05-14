@@ -1,69 +1,56 @@
 <?php
+require_once __DIR__ . '/includes/local_product_store.php';
+
 $page_title = 'Top Products';
+$method = (string) ($_GET['method'] ?? 'best_rated');
+$allowedMethods = [
+    'best_rated' => 'Best Rated',
+    'most_visited' => 'Most Visited',
+    'most_reviewed' => 'Most Reviewed',
+];
+if (!isset($allowedMethods[$method])) {
+    $method = 'best_rated';
+}
+
+$db = sc_cookie_store_connect();
+$products = sc_cookie_fetch_top_products($db, $method, 5);
+
 include __DIR__ . '/includes/header.php';
 ?>
   <div class="container">
     <h1>Top 5 Cookie Products</h1>
-    <p class="muted" id="top-desc">Loading rankings from OurMarketplace...</p>
+    <p class="muted">Showing local Sweet Crumb rankings sorted by <?php echo htmlspecialchars($allowedMethods[$method]); ?>.</p>
     <div style="display:flex;gap:.5rem;flex-wrap:wrap;margin:1rem 0 0;">
-      <button type="button" class="btn btn-secondary sc-top-tab active" data-method="best_rated">Best Rated</button>
-      <button type="button" class="btn btn-secondary sc-top-tab" data-method="most_visited">Most Visited</button>
-      <button type="button" class="btn btn-secondary sc-top-tab" data-method="most_reviewed">Most Reviewed</button>
+      <?php foreach ($allowedMethods as $key => $label): ?>
+        <a href="popular-products.php?method=<?php echo htmlspecialchars($key); ?>" class="btn btn-secondary<?php echo $method === $key ? ' active' : ''; ?>"><?php echo htmlspecialchars($label); ?></a>
+      <?php endforeach; ?>
     </div>
-    <div id="top-list"></div>
+
+    <?php if (empty($products)): ?>
+      <p class="muted">No ranked products yet.</p>
+    <?php else: ?>
+      <ol class="tracked-list popular">
+        <?php foreach ($products as $product): ?>
+          <li class="tracked-item">
+            <a href="product.php?id=<?php echo (int) ($product['id'] ?? 0); ?>">
+              <img src="<?php echo htmlspecialchars((string) ($product['image_url'] ?? '')); ?>" alt="" width="120" height="80" loading="lazy">
+              <span><?php echo htmlspecialchars((string) ($product['name'] ?? '')); ?></span>
+            </a>
+            <span class="visit-badge">
+              <?php if ($method === 'most_visited'): ?>
+                <?php echo (int) ($product['visit_count'] ?? 0); ?> visits
+              <?php elseif ($method === 'most_reviewed'): ?>
+                <?php echo (int) ($product['review_count'] ?? 0); ?> reviews
+              <?php else: ?>
+                <?php echo number_format((float) ($product['avg_rating'] ?? 0), 1); ?>/5
+              <?php endif; ?>
+            </span>
+          </li>
+        <?php endforeach; ?>
+      </ol>
+    <?php endif; ?>
   </div>
-
-  <script>
-  (function () {
-    if (typeof SCMarketplace === 'undefined') {
-      document.getElementById('top-desc').textContent = 'Marketplace client failed to load.';
-      return;
-    }
-
-    function escapeHtml(s) {
-      return String(s == null ? '' : s)
-        .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
-        .replace(/"/g, '&quot;').replace(/'/g, '&#39;');
-    }
-
-    function render(method) {
-      var desc = document.getElementById('top-desc');
-      desc.textContent = 'Loading ' + method.replace('_', ' ') + '...';
-      SCMarketplace.getTopProducts({ company_id: SCMarketplace.COMPANY_ID, method: method, limit: 5 })
-        .then(function (data) {
-          var list = (data && data.products) || [];
-          desc.textContent = 'Showing ' + list.length + ' cookie products from OurMarketplace.';
-          if (!list.length) {
-            document.getElementById('top-list').innerHTML = '<p class="muted">No ranked products yet.</p>';
-            return;
-          }
-          var html = '<ol class="tracked-list popular">';
-          list.forEach(function (p) {
-            html += '<li class="tracked-item">'
-              + '<a href="product.php?id=' + encodeURIComponent(p.id) + '">'
-              + '<img src="' + escapeHtml(p.image_url || '') + '" alt="" width="120" height="80" loading="lazy">'
-              + '<span>' + escapeHtml(p.name || '') + '</span>'
-              + '</a>'
-              + '<span class="visit-badge">' + escapeHtml(method === 'most_visited' ? ((p.visit_count || 0) + ' visits') : (method === 'most_reviewed' ? ((p.review_count || 0) + ' reviews') : (Number(p.avg_rating || 0).toFixed(1) + '/5'))) + '</span>'
-              + '</li>';
-          });
-          html += '</ol>';
-          document.getElementById('top-list').innerHTML = html;
-        })
-        .catch(function () {
-          desc.textContent = 'Could not load top products right now.';
-        });
-    }
-
-    var tabs = document.querySelectorAll('.sc-top-tab');
-    tabs.forEach(function (btn) {
-      btn.addEventListener('click', function () {
-        tabs.forEach(function (b) { b.classList.remove('active'); });
-        btn.classList.add('active');
-        render(btn.getAttribute('data-method'));
-      });
-    });
-    render('best_rated');
-  })();
-  </script>
-<?php include __DIR__ . '/includes/footer.php'; ?>
+<?php
+$db->close();
+include __DIR__ . '/includes/footer.php';
+?>

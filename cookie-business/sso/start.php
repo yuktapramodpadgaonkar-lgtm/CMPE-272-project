@@ -14,7 +14,7 @@ if (!empty($_SESSION['is_admin']) && $_SESSION['is_admin'] === true) {
     exit;
 }
 
-$url = sc_sso_authorize_url();
+$url = sc_sso_login_url();
 if ($url === '#' || $url === '') {
     header('Location: ../account.php?sso_error=' . rawurlencode('SSO is not configured. Check config/sso.php.'));
     exit;

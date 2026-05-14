@@ -1,43 +1,35 @@
 <?php
+require_once __DIR__ . '/includes/site_user_auth.php';
+require_once __DIR__ . '/includes/local_product_store.php';
+
 $page_title = 'Recently Viewed Products';
+$siteUser = sc_site_user();
+$siteUserId = isset($siteUser['id']) ? (int) $siteUser['id'] : null;
+$db = sc_cookie_store_connect();
+$products = sc_cookie_fetch_recent_products($db, $siteUserId, 5);
+
 include __DIR__ . '/includes/header.php';
 ?>
   <div class="container">
     <h1>Last 5 Previously Visited Products</h1>
-    <p class="muted" id="recent-desc">Tracked in this browser as you open marketplace-backed cookie products.</p>
-    <div id="recent-list"></div>
+    <p class="muted">
+      <?php echo !empty($products) ? 'The last ' . count($products) . ' cookie products opened from this browser or signed-in session.' : 'You have not viewed any local cookie products yet.'; ?>
+    </p>
+
+    <?php if (!empty($products)): ?>
+      <ul class="tracked-list">
+        <?php foreach ($products as $product): ?>
+          <li class="tracked-item">
+            <a href="product.php?id=<?php echo (int) ($product['id'] ?? 0); ?>">
+              <img src="<?php echo htmlspecialchars((string) ($product['image_url'] ?? '')); ?>" alt="" width="120" height="80" loading="lazy">
+              <span><?php echo htmlspecialchars((string) ($product['name'] ?? '')); ?></span>
+            </a>
+          </li>
+        <?php endforeach; ?>
+      </ul>
+    <?php endif; ?>
   </div>
-
-  <script>
-  (function () {
-    if (typeof SCMarketplace === 'undefined') {
-      document.getElementById('recent-desc').textContent = 'Marketplace client failed to load.';
-      return;
-    }
-
-    function escapeHtml(s) {
-      return String(s == null ? '' : s)
-        .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
-        .replace(/"/g, '&quot;').replace(/'/g, '&#39;');
-    }
-
-    var list = SCMarketplace.getRecentVisited(5);
-    if (!list || !list.length) {
-      document.getElementById('recent-desc').textContent = 'You have not viewed any marketplace cookie products yet.';
-      return;
-    }
-    document.getElementById('recent-desc').textContent = 'The last ' + list.length + ' cookie products you opened from this browser.';
-    var html = '<ul class="tracked-list">';
-    list.forEach(function (p) {
-      html += '<li class="tracked-item">'
-        + '<a href="' + escapeHtml(p.href || ('product.php?id=' + encodeURIComponent(p.id || ''))) + '">'
-        + '<img src="' + escapeHtml(p.image || '') + '" alt="" width="120" height="80" loading="lazy">'
-        + '<span>' + escapeHtml(p.name || '') + '</span>'
-        + '</a>'
-        + '</li>';
-    });
-    html += '</ul>';
-    document.getElementById('recent-list').innerHTML = html;
-  })();
-  </script>
-<?php include __DIR__ . '/includes/footer.php'; ?>
+<?php
+$db->close();
+include __DIR__ . '/includes/footer.php';
+?>

@@ -34,8 +34,8 @@ require_once __DIR__ . '/includes/header.php';
           <p><a class="cookie-links" href="user_dashboard.php">Open dashboard</a></p>
         </div>
         <div class="card">
-          <h3>Browse marketplace products</h3>
-          <p>Your product views and reviews sync with the marketplace from this site.</p>
+          <h3>Browse cookie products</h3>
+          <p>Your product views, reviews, and rankings are now served from the Sweet Crumb database on this site.</p>
           <p><a class="cookie-links" href="products.php">Open products</a></p>
         </div>
         <div class="card">
@@ -47,7 +47,7 @@ require_once __DIR__ . '/includes/header.php';
         <div class="card">
           <h3>Sign in</h3>
           <p>Use the same OurMarketplace account for this cookie site.</p>
-          <p><a class="cookie-links" href="<?php echo htmlspecialchars(sc_sso_authorize_url()); ?>">Sign in with Our Marketplace</a></p>
+          <p><a class="cookie-links" href="sso/start.php">Sign in with Our Marketplace</a></p>
         </div>
         <div class="card">
           <h3>Create account</h3>

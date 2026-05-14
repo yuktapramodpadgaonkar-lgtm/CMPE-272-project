@@ -5,6 +5,22 @@
 require_once __DIR__ . '/db.php';
 require_once __DIR__ . '/site_user_auth.php';
 
+function site_accounts_ensure_table(mysqli $mysqli): void
+{
+    $mysqli->query("
+        CREATE TABLE IF NOT EXISTS site_accounts (
+            id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+            username VARCHAR(50) NOT NULL,
+            email VARCHAR(100) NOT NULL,
+            password_hash VARCHAR(255) NOT NULL,
+            full_name VARCHAR(100) NOT NULL,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            UNIQUE KEY uq_site_accounts_username (username),
+            UNIQUE KEY uq_site_accounts_email (email)
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
+    ");
+}
+
 /**
  * @return string|null Error message, or null on success
  */
@@ -36,6 +52,8 @@ function site_register_from_post(array $post): ?string {
     } catch (Exception $e) {
         return 'Database error. Check db_config.php.';
     }
+
+    site_accounts_ensure_table($mysqli);
 
     $stmt = $mysqli->prepare('SELECT id FROM site_accounts WHERE username = ? OR email = ? LIMIT 1');
     if ($stmt === false) {
@@ -86,6 +104,8 @@ function site_login_from_post(array $post): ?string {
     } catch (Exception $e) {
         return 'Database error. Check db_config.php.';
     }
+
+    site_accounts_ensure_table($mysqli);
 
     $stmt = $mysqli->prepare('SELECT id, username, email, password_hash, full_name FROM site_accounts WHERE username = ? OR email = ? LIMIT 1');
     if ($stmt === false) {

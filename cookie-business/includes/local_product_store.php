@@ -51,6 +51,38 @@ function sc_cookie_store_connect(): mysqli
     return $db;
 }
 
+function sc_cookie_store_has_foreign_key(mysqli $db, string $tableName, string $constraintName): bool
+{
+    $stmt = $db->prepare("
+        SELECT 1
+        FROM information_schema.TABLE_CONSTRAINTS
+        WHERE CONSTRAINT_SCHEMA = DATABASE()
+          AND TABLE_NAME = ?
+          AND CONSTRAINT_NAME = ?
+          AND CONSTRAINT_TYPE = 'FOREIGN KEY'
+        LIMIT 1
+    ");
+
+    if (!$stmt) {
+        return false;
+    }
+
+    $stmt->bind_param('ss', $tableName, $constraintName);
+    $stmt->execute();
+    $found = $stmt->get_result()->num_rows > 0;
+    $stmt->close();
+    return $found;
+}
+
+function sc_cookie_store_drop_foreign_key(mysqli $db, string $tableName, string $constraintName): void
+{
+    if (!sc_cookie_store_has_foreign_key($db, $tableName, $constraintName)) {
+        return;
+    }
+
+    $db->query("ALTER TABLE `{$tableName}` DROP FOREIGN KEY `{$constraintName}`");
+}
+
 function sc_cookie_store_bootstrap(mysqli $db): void
 {
     $db->query("
@@ -62,6 +94,19 @@ function sc_cookie_store_bootstrap(mysqli $db): void
             email VARCHAR(150) NOT NULL UNIQUE,
             last_logged_in DATETIME NULL,
             created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
+    ");
+
+    $db->query("
+        CREATE TABLE IF NOT EXISTS site_accounts (
+            id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+            username VARCHAR(50) NOT NULL,
+            email VARCHAR(100) NOT NULL,
+            password_hash VARCHAR(255) NOT NULL,
+            full_name VARCHAR(100) NOT NULL,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            UNIQUE KEY uq_site_accounts_username (username),
+            UNIQUE KEY uq_site_accounts_email (email)
         ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
     ");
 
@@ -92,10 +137,7 @@ function sc_cookie_store_bootstrap(mysqli $db): void
             KEY idx_cookie_product_visits_session (session_key),
             CONSTRAINT fk_cookie_product_visits_product
                 FOREIGN KEY (product_id) REFERENCES cookie_products(id)
-                ON DELETE CASCADE,
-            CONSTRAINT fk_cookie_product_visits_user
-                FOREIGN KEY (site_user_id) REFERENCES site_users(id)
-                ON DELETE SET NULL
+                ON DELETE CASCADE
         ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
     ");
 
@@ -113,12 +155,14 @@ function sc_cookie_store_bootstrap(mysqli $db): void
             KEY idx_cookie_product_reviews_user (site_user_id),
             CONSTRAINT fk_cookie_product_reviews_product
                 FOREIGN KEY (product_id) REFERENCES cookie_products(id)
-                ON DELETE CASCADE,
-            CONSTRAINT fk_cookie_product_reviews_user
-                FOREIGN KEY (site_user_id) REFERENCES site_users(id)
                 ON DELETE CASCADE
         ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
     ");
+
+    // Older deploys created these tables with site_users foreign keys. Drop them so local
+    // site_accounts logins can write visits and reviews without cross-table ID conflicts.
+    sc_cookie_store_drop_foreign_key($db, 'cookie_product_visits', 'fk_cookie_product_visits_user');
+    sc_cookie_store_drop_foreign_key($db, 'cookie_product_reviews', 'fk_cookie_product_reviews_user');
 
     sc_cookie_store_seed_products($db);
 }
@@ -379,9 +423,15 @@ function sc_cookie_fetch_recent_products(mysqli $db, ?int $siteUserId, int $limi
 function sc_cookie_fetch_reviews(mysqli $db, int $productId): array
 {
     $stmt = $db->prepare("
-        SELECT r.id, r.rating, r.review_text, r.created_at, u.full_name, u.username
+        SELECT r.id,
+               r.rating,
+               r.review_text,
+               r.created_at,
+               COALESCE(sa.full_name, su.full_name) AS full_name,
+               COALESCE(sa.username, su.username) AS username
         FROM cookie_product_reviews r
-        JOIN site_users u ON u.id = r.site_user_id
+        LEFT JOIN site_accounts sa ON sa.id = r.site_user_id
+        LEFT JOIN site_users su ON su.id = r.site_user_id
         WHERE r.product_id = ?
         ORDER BY r.updated_at DESC, r.created_at DESC
     ");
